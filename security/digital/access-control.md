@@ -75,23 +75,14 @@ We control access to infrastructure and systems to ensure only authorized person
 
 **Automation:** None - this is a manual process
 
-### 4.2 Production Deployment
+### 4.2 Production Deployment Authorization
 
-**Trigger:** Code ready for production release
+Production deployments require approval from personnel with appropriate access levels:
+- 2 Engineering team members (code review)
+- 1 QA team member (release readiness)
+- 1 Executive: CTO, Head of Product, or CEO (deployment authorization)
 
-**Steps:**
-1. Engineer submits PR to `main` branch
-2. PR requires approval from:
-   - 2 Engineering team members (code review)
-   - 1 QA team member (release readiness)
-   - 1 of: CTO, Head of Product, or CEO (deployment authorization)
-3. Once all approvals collected, PR is merged
-4. GitHub Actions automatically deploys to production
-5. Deployment logs captured in GitHub Actions
-
-**Tools:** GitHub (PRs, Actions), GCP (deployment target)
-
-**Automation:** Deployment itself is fully automated via GitHub Actions. Approvals are manual.
+For full deployment workflow details, see [Deployment & Release Management](deployment-control.md).
 
 ### 4.3 Infrastructure Changes
 
@@ -210,6 +201,6 @@ When this control operates correctly:
 
 | Control Area | Relationship |
 |-------------|--------------|
-| Change Management | Deployment approval process is part of change control |
+| Deployment & Release Management | Implements deployment workflow using access levels defined here |
 | Logging & Monitoring | GCP logs provide audit trail for this control |
 | Incident Response | Access revocation is part of incident handling |

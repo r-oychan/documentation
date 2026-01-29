@@ -1,7 +1,8 @@
 # Access Control & Identity Management
 
 **Owner:** CTO
-**Last Reviewed:** 2025-01-27
+**Version:** 1.1
+**Last Reviewed:** 2026-01-29
 **Review Cadence:** Quarterly
 
 ---
@@ -172,7 +173,7 @@ When this control operates correctly:
 ### Edge Cases
 
 - **Emergency deployment (all approvers unavailable):** [ASSUMPTION: Not yet defined - recommend documenting a break-glass process]
-- **Contractor access:** [ASSUMPTION: No contractors currently - define process if needed]
+- **Contractor access:** See Third-Party Risk Management control for contractor access process
 
 ---
 
@@ -204,3 +205,5 @@ When this control operates correctly:
 | Deployment & Release Management | Implements deployment workflow using access levels defined here |
 | Logging & Monitoring | GCP logs provide audit trail for this control |
 | Incident Response | Access revocation is part of incident handling |
+| Third-Party Risk Management | Contractor access defined there (code only, no infra) |
+| Physical Security | Physical office access complements digital access |

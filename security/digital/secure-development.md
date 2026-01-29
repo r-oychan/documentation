@@ -1,7 +1,8 @@
 # Secure Development & Data Protection
 
 **Owner:** CTO
-**Last Reviewed:** 2025-01-27
+**Version:** 1.1
+**Last Reviewed:** 2026-01-29
 **Review Cadence:** Quarterly
 
 ---
@@ -251,6 +252,8 @@ When this control operates correctly:
 | Control Area | Relationship |
 |-------------|--------------|
 | Access Control & Identity Management | Controls who can approve PRs and access Kraken |
-| Change Management | ADR and PR process is part of change control |
+| Deployment & Release Management | ADR and PR process is part of change control |
 | Vulnerability Management | Scan findings feed into vulnerability tracking |
 | Logging & Monitoring | Monitors for anomalous access to encrypted data |
+| Network Security | Kraken VPC isolation and firewall rules defined there |
+| Third-Party Risk Management | Contractor code passes through same scanning |

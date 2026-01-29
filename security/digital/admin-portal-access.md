@@ -1,7 +1,8 @@
 # Admin Portal Access Control
 
 **Owner:** CTO
-**Last Reviewed:** 2025-01-27
+**Version:** 1.1
+**Last Reviewed:** 2026-01-29
 **Review Cadence:** Quarterly
 
 ---
@@ -269,3 +270,5 @@ When this control operates correctly:
 | Access Control & Identity Management | Admin Portal is a system covered by overall access policy |
 | Secure Development & Data Protection | PAN masking implemented per data protection standards |
 | Logging & Monitoring | Refund/void logs feed into central logging |
+| Incident Response | CS reports incidents; uses Admin Portal to verify impact |
+| Physical Security | CS Room separation supports CS-only access |

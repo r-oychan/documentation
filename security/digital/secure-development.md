@@ -137,29 +137,44 @@ We design and build software with security and privacy at the core. This control
 **Principle:** Store only what we need to know
 
 **Implementation:**
-- DASH main application stores tokens only (no PAN)
-- Kraken stores PAN only because gateway integration requires it
-- PAN never logged, even in Kraken
-- [ASSUMPTION: Data retention policy exists - verify and document separately]
+- DASH main application stores tokens only (no cardholder data)
+- Kraken stores only the minimum cardholder data required for gateway submission
+- Cardholder data never logged, even in Kraken
+- CVV never stored (used only during 3DS authentication, then discarded)
 
-### 4.5 PAN Encryption & Tokenization (Kraken)
+### 4.5 Cardholder Data Storage & Tokenization (Kraken)
+
+**Cardholder Data Stored in Kraken:**
+
+| Data Element | Stored | Encrypted | Justification |
+|--------------|--------|-----------|---------------|
+| Cardholder Name | Yes | Yes (GCP KMS) | Required by payment gateways |
+| PAN (Card Number) | Yes | Yes (GCP KMS) | Required for payment processing |
+| Expiration Date | Yes | Yes (GCP KMS) | Required for recurring payments |
+| CVV/CVC | **No** | N/A | Used only during 3DS, then discarded |
+| PIN / PIN Block | **No** | N/A | Not applicable (online payments only) |
+| Track Data | **No** | N/A | Not applicable (no magnetic stripe) |
 
 **Architecture:**
-- Kraken is the only component that handles raw PAN
-- DASH main app receives tokens, never sees PAN
+- Kraken is the only component that handles cardholder data
+- DASH main app receives tokens, never sees cardholder data
+- CVV collected for 3DS verification only, never persisted
 
 **Encryption:**
-- All PAN encrypted using Google Cloud KMS
-- Encryption at rest and in transit
+- All stored cardholder data encrypted using Google Cloud KMS (AES-256-GCM)
+- Encryption at field level (not just disk encryption)
 - Key rotation: Every 90 days (automated by GCP KMS)
+- Key material resides in FIPS 140-2 Level 3 HSMs
 
 **Tokenization Flow:**
-1. Payment data enters Kraken
-2. Kraken encrypts PAN using KMS
-3. Kraken generates token
-4. Token returned to DASH main application
-5. DASH stores token only
-6. When gateway interaction needed, Kraken decrypts and sends to gateway
+1. Cardholder data enters Kraken (name, PAN, expiry, CVV)
+2. Kraken performs 3DS authentication using CVV
+3. CVV discarded immediately after 3DS completes
+4. Kraken encrypts remaining data (name, PAN, expiry) using KMS
+5. Kraken generates non-reversible token
+6. Token returned to DASH main application
+7. DASH stores token only (no cardholder data)
+8. When gateway interaction needed, Kraken decrypts and sends to gateway
 
 **Supported Gateways:**
 | Gateway | Type | Use Case |
@@ -257,3 +272,6 @@ When this control operates correctly:
 | Logging & Monitoring | Monitors for anomalous access to encrypted data |
 | Network Security | Kraken VPC isolation and firewall rules defined there |
 | Third-Party Risk Management | Contractor code passes through same scanning |
+| System Component Inventory | Tracks application stack and dependencies |
+| Security Policy & Awareness | Engineering security training (OWASP, secure coding) defined there |
+| Security Standards & Exception Governance | Development practice exceptions follow governance process |

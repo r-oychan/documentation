@@ -235,3 +235,5 @@ When this control operates correctly:
 | Logging & Monitoring | Physical access logs complement digital audit logs |
 | Network Security | Office WiFi isolation complements network security |
 | Third-Party Risk Management | Visitor access relates to third-party management |
+| Security Policy & Awareness | Physical security training (Module 6) for all staff |
+| Incident Response | Physical security incidents follow incident process |

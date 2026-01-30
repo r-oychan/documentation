@@ -1,8 +1,8 @@
 # Cryptographic Key Management
 
 **Owner:** CTO
-**Version:** 1.0
-**Last Reviewed:** 2026-01-29
+**Version:** 1.1
+**Last Reviewed:** 2026-01-30
 **Review Cadence:** Quarterly
 
 ---
@@ -51,17 +51,35 @@ We manage cryptographic keys to protect cardholder data (PAN) and other sensitiv
 | Role | Team/Individual | Responsibility |
 |------|-----------------|----------------|
 | Control Owner | CTO | Sets key management policy, approves key access, reviews key usage |
-| Key Administrator | Engineering Team | Configures KMS, monitors rotation, responds to alerts |
+| Key Administrator | Engineering Team | Configures KMS settings (via IaC), monitors rotation, responds to alerts |
 | Key User | Kraken Application | Performs encrypt/decrypt operations via service account |
 | Auditor | CTO | Reviews key access logs quarterly |
 
 ### Access to KMS
 
-| Role | KMS Permission | Justification |
-|------|----------------|---------------|
-| Kraken Service Account | `cloudkms.cryptoKeyEncrypterDecrypter` | Encrypt/decrypt PAN data |
-| Engineering Team | `cloudkms.viewer` | View key metadata, troubleshoot issues |
-| CTO | `cloudkms.admin` | Full management for break-glass scenarios |
+| Role | KMS Permission | Justification | Can See Key Material? |
+|------|----------------|---------------|----------------------|
+| Kraken Service Account | `cloudkms.cryptoKeyEncrypterDecrypter` | Encrypt/decrypt cardholder data | **No** - API access only |
+| Engineering Team | `cloudkms.viewer` | View key metadata, troubleshoot issues | **No** - metadata only |
+| CTO | `cloudkms.admin` | Full management for break-glass scenarios | **No** - management only |
+| Google (GCP) | Infrastructure operator | HSM management | **No** - hardware isolation |
+
+### No Human Access to Key Material
+
+**Critical Security Property:** No person - including DASH employees, CTO, or Google employees - has access to the actual encryption/decryption key material.
+
+| Access Level | What They Can Do | What They Cannot Do |
+|--------------|------------------|---------------------|
+| **Kraken Service Account** | Call encrypt/decrypt APIs | Export, view, or copy key bytes |
+| **Engineering Team** | View key metadata (name, rotation date, algorithm) | Decrypt data, export keys |
+| **CTO (Admin)** | Create/delete keys, configure rotation, grant permissions | Export key material, view key bytes |
+| **Google Cloud** | Operate HSM infrastructure | Access key material (hardware-enforced isolation) |
+
+This is enforced by:
+1. **GCP KMS Architecture:** Keys exist only inside HSMs and cannot be exported
+2. **IAM Permissions:** No IAM role grants key export capability
+3. **Hardware Security:** FIPS 140-2 Level 3 HSMs physically prevent key extraction
+4. **Audit Logging:** All key operations logged (no stealth access possible)
 
 ---
 
@@ -88,14 +106,68 @@ We manage cryptographic keys to protect cardholder data (PAN) and other sensitiv
 ### 4.2 Key Storage
 
 **How we store keys:**
-- All keys reside in GCP KMS (cloud-hosted HSM)
-- Key material is never exported or accessible outside KMS
-- Kraken accesses keys via GCP KMS API using service account credentials
+- All keys reside exclusively in GCP KMS (cloud-hosted HSM)
+- Key material is **never exported** and **cannot be accessed** by any human or system
+- Kraken (Cloud Run) accesses keys via GCP KMS API using service account credentials
+- Encryption/decryption happens inside the HSM; only ciphertext/plaintext crosses the API boundary
 
 **Protection:**
-- GCP KMS provides hardware-level protection
-- Service account credentials rotated [ASSUMPTION: annually - verify rotation policy]
+- GCP KMS provides hardware-level protection (FIPS 140-2 Level 3 HSMs)
+- Service account credentials managed by GCP via Workload Identity (no static keys for Cloud Run)
 - Access restricted via IAM policies
+- **Key material never leaves the HSM** - this is a hardware-enforced guarantee
+
+**Why No One Can Access Key Material:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           GCP KMS Architecture                               │
+│                                                                              │
+│   ┌──────────────────┐         ┌──────────────────────────────────────────┐ │
+│   │  Kraken App      │         │           GCP KMS (HSM)                   │ │
+│   │  (Cloud Run)     │         │  ┌──────────────────────────────────┐    │ │
+│   │                  │ ──API──▶│  │     Key Material                 │    │ │
+│   │  Sends:          │         │  │     (AES-256 key bytes)          │    │ │
+│   │  • Plaintext     │         │  │                                  │    │ │
+│   │                  │         │  │  ⚠️  NEVER LEAVES THIS BOX       │    │ │
+│   │  Receives:       │◀──API── │  │  ⚠️  CANNOT BE EXPORTED          │    │ │
+│   │  • Ciphertext    │         │  │  ⚠️  NO HUMAN ACCESS             │    │ │
+│   │                  │         │  └──────────────────────────────────┘    │ │
+│   └──────────────────┘         │                                          │ │
+│                                │  Hardware: Thales Luna HSM               │ │
+│                                │  Certification: FIPS 140-2 Level 3       │ │
+│                                └──────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+What crosses the API:
+  → Plaintext data to encrypt
+  ← Ciphertext (encrypted data)
+  → Ciphertext to decrypt
+  ← Plaintext data
+
+What NEVER crosses the API:
+  ✗ Key material (encryption key bytes)
+  ✗ Key components or shares
+  ✗ Any form of exportable key
+```
+
+**GCP KMS PCI Compliance (Inherited Controls):**
+
+GCP KMS satisfies multiple PCI DSS requirements through inherited controls:
+
+| PCI Requirement | GCP KMS Provides | Evidence |
+|-----------------|-----------------|----------|
+| **3.5.1** (Keys protected) | Hardware Security Modules (HSM) | GCP AOC, FIPS 140-2 Level 3 |
+| **3.5.1.1** (HSM or equivalent) | Cloud HSM backed by Thales Luna HSMs | GCP documentation |
+| **3.6.1.1** (Strong key generation) | FIPS 140-2 validated random number generators | GCP AOC |
+| **3.6.1.2** (Secure key distribution) | Keys never leave KMS; accessed via API only | Architecture |
+| **3.6.1.3** (Secure key storage) | HSM protection, key material never exported | GCP KMS design |
+| **3.7.1** (Key retirement) | Key version management, scheduled destruction | GCP KMS features |
+
+**Cloud Run + KMS Integration:**
+- Cloud Run services authenticate to KMS using Workload Identity (no static credentials)
+- KMS API calls encrypted in transit (TLS 1.2+)
+- All KMS operations logged in Cloud Audit Logs
 
 ### 4.3 Key Rotation (Automated)
 
@@ -175,12 +247,14 @@ DASH Main App → Token → Kraken → KMS Decrypt → Gateway
 
 When this control operates correctly:
 
-- [ ] All PAN encryption uses GCP KMS (no local encryption)
+- [ ] All cardholder data encryption uses GCP KMS (no local encryption)
 - [ ] Encryption keys rotate automatically every 90 days
-- [ ] Key material never leaves GCP KMS HSM
-- [ ] Only Kraken service account can encrypt/decrypt PAN
+- [ ] **Key material never leaves GCP KMS HSM** (hardware-enforced)
+- [ ] **No human has access to encryption/decryption key material** (not even CTO or Google)
+- [ ] Only Kraken service account can call encrypt/decrypt APIs
 - [ ] All key operations are logged in GCP Audit Logs
 - [ ] Key destruction requires CTO approval and 24-hour delay
+- [ ] Keys cannot be exported - this is a GCP KMS design guarantee
 
 ---
 
@@ -264,6 +338,8 @@ When this control operates correctly:
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-01-29 | Initial document created | [Author] |
+| 2026-01-29 | Added GCP KMS PCI DSS inherited controls, Cloud Run Workload Identity integration | [Author] |
+| 2026-01-30 | v1.1: Clarified that no human has access to key material; added KMS architecture diagram; expanded access control table | [Author] |
 
 ---
 
@@ -277,3 +353,6 @@ When this control operates correctly:
 | Network Security | Kraken VPC isolation protects KMS API access |
 | Incident Response | Key compromise handled via incident process |
 | Business Continuity & Disaster Recovery | Key backup handled by GCP (cross-region replication) |
+| Admin Portal Access Control | References 90-day KMS key rotation policy |
+| Security Standards & Exception Governance | Encryption algorithm exceptions follow governance process |
+| Third-Party Risk Management | GCP KMS as PCI-compliant service provider documented there |

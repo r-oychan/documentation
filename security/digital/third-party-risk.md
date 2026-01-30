@@ -161,11 +161,55 @@ We manage risks from third parties (contractors, vendors, service providers) who
 
 | Vendor | Purpose | Data Stored | Security Consideration |
 |--------|---------|-------------|----------------------|
-| GCP | Infrastructure | All production data | PCI compliant, SOC 2 |
+| **GCP** | Infrastructure (Cloud Run, Cloud Functions) | All production data, encrypted PAN | **PCI DSS 4.0.1 Level 1 Service Provider** |
 | GitHub | Code repository | Source code | SOC 2, SSO enabled |
 | Sentry | Error tracking | Error logs (sanitized) | No PAN, no credentials |
 | Firebase | Auth (Admin Portal) | CS user accounts | MFA enforced |
 | Notion | Documentation | Internal docs | No production data |
+
+### 4.6 GCP as PCI DSS Service Provider
+
+GCP is our primary infrastructure provider and maintains **PCI DSS 4.0.1 Level 1 Service Provider** compliance.
+
+**GCP PCI Compliance Evidence:**
+
+| Evidence | Description | How to Access |
+|----------|-------------|---------------|
+| Attestation of Compliance (AOC) | GCP's PCI DSS 4.0.1 certification | [Compliance Reports Manager](https://cloud.google.com/security/compliance/compliance-reports-manager) |
+| Shared Responsibility Matrix | Control ownership documentation | [GCP PCI DSS SRM](https://services.google.com/fh/files/misc/gcp_pci_dss_v4_responsibility_matrix.pdf) |
+| SOC 2 Type II | Annual security audit | Compliance Reports Manager |
+| ISO 27001 | Information security management | Compliance Reports Manager |
+
+**Inherited Controls from GCP:**
+
+Because we use **Cloud Run** and **Cloud Functions** (serverless):
+
+| PCI Requirement | Inherited from GCP | Notes |
+|-----------------|-------------------|-------|
+| **Req 1** (Network Security) | Physical network infrastructure | GCP manages all physical NSCs |
+| **Req 2** (Secure Configuration) | OS/container runtime hardening | Fully managed serverless |
+| **Req 5** (Anti-Malware) | Infrastructure-level protection | Security Command Center, Container Threat Detection |
+| **Req 9** (Physical Access) | Data center physical security | GCP responsibility |
+| **Req 10** (Logging) | Cloud Audit Logs (immutable) | Admin Activity logs always on |
+| **Req 11** (Security Testing) | Infrastructure scanning | Security Health Analytics |
+
+**Our Responsibilities (Application Layer):**
+
+| Area | Our Responsibility |
+|------|-------------------|
+| Application code security | Secure development, code scanning |
+| Access management | IAM configuration, least privilege |
+| Data handling | PAN tokenization, encryption |
+| Network configuration | VPC, firewall rules, ingress/egress |
+| Logging configuration | Enable Data Access logs, configure retention |
+| Secrets management | Use Secret Manager, rotate credentials |
+
+**Annual GCP Compliance Review:**
+1. Download latest GCP AOC from Compliance Reports Manager
+2. Review GCP Shared Responsibility Matrix for any changes
+3. Verify our services are in scope for GCP's PCI compliance
+4. Document review completion
+5. Update internal documentation if GCP controls change
 
 **Vendor Selection Criteria:**
 - Security certifications (SOC 2, ISO 27001, PCI if applicable)
@@ -256,6 +300,7 @@ When this control operates correctly:
 | Date | Change | Author |
 |------|--------|--------|
 | 2025-01-27 | Initial document created | [Author] |
+| 2026-01-29 | Added GCP PCI DSS 4.0.1 Service Provider details, inherited controls documentation | [Author] |
 
 ---
 
@@ -265,7 +310,9 @@ When this control operates correctly:
 |-------------|--------------|
 | Access Control & Identity Management | Contractor access is subset of access control |
 | Secure Development & Data Protection | Contractor code passes through same security scans |
-| Network Security | Kraken VPC isolates payment gateway integrations |
-| Vulnerability Management | Contractor code scanned for vulnerabilities |
+| Network Security | Kraken VPC isolates payment gateway integrations; GCP inherited controls documented here |
+| Vulnerability Management | Contractor code scanned for vulnerabilities; pen test vendors managed here |
 | Business Continuity & Disaster Recovery | GitHub and GCP are critical vendors for recovery |
 | Physical Security | Visitor access relates to third-party management |
+| Logging & Monitoring | GCP inherited logging controls documented here |
+| Security Standards & Exception Governance | Vendor security exceptions follow governance process |

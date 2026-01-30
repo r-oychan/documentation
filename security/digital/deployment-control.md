@@ -217,3 +217,5 @@ When this control operates correctly:
 | Incident Response | Activated when deployments cause outages; hotfix process defined there |
 | Vulnerability Management | Scan results can block deployments |
 | Secure Development & Data Protection | Code quality gates enforced before deployment |
+| System Component Inventory | Tracks what gets deployed; dependency versions |
+| Security Standards & Exception Governance | Deployment process exceptions follow governance process |

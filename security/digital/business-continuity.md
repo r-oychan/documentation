@@ -250,3 +250,5 @@ When this control operates correctly:
 | Secure Development & Data Protection | Backup encryption aligned with data protection |
 | Network Security | Backup storage protected by GCP security |
 | Third-Party Risk Management | GitHub and GCP are critical vendors for recovery |
+| Logging & Monitoring | Backup completion logs captured in Cloud Logging |
+| Security Standards & Exception Governance | RTO/RPO exceptions follow governance process |

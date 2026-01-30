@@ -370,3 +370,6 @@ When this control operates correctly:
 | Business Continuity & Disaster Recovery | Data recovery procedures may be invoked |
 | Vulnerability Management | Zero-day vulnerabilities may trigger incidents |
 | Network Security | Network incidents handled per this process |
+| Security Policy & Awareness | Incident reporting training for all staff (Module 7) |
+| Security Standards & Exception Governance | Post-incident may trigger exception reviews |
+| Cryptographic Key Management | Key compromise handled via incident process |

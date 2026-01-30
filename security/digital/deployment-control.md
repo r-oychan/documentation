@@ -1,7 +1,8 @@
 # Deployment & Release Management
 
 **Owner:** Engineering Team
-**Last Reviewed:** 2026-01-27
+**Version:** 1.1
+**Last Reviewed:** 2026-01-29
 **Review Cadence:** Quarterly
 
 ---
@@ -80,7 +81,7 @@ We control deployments to ensure code changes reach production in a predictable,
 **Tools:**
 - GitHub - Source control, PR reviews
 - GitHub Actions - CI/CD pipeline execution
-- [ASSUMPTION: Slack/Teams] - Deployment notifications
+- Teams - Deployment notifications
 
 **Automation:**
 - Build, test, and deployment steps are fully automated
@@ -190,7 +191,7 @@ When this control operates correctly:
 
 **Review Schedule:**
 - **Frequency:** Quarterly
-- **Next Review:** 2026-04-27
+- **Next Review:** 2025-04-27
 - **Reviewer:** Engineering Lead
 
 **Update Triggers:**
@@ -203,7 +204,7 @@ When this control operates correctly:
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-01-27 | Initial document creation | Engineering Team |
+| 2025-01-27 | Initial document creation | Engineering Team |
 
 ---
 
@@ -211,7 +212,10 @@ When this control operates correctly:
 
 | Control Area | Relationship |
 |-------------|--------------|
-| Access Control | Governs who can merge and deploy |
+| Access Control & Identity Management | Governs who can merge and deploy |
 | Logging & Monitoring | Captures deployment events and application health |
-| Incident Response | Activated when deployments cause outages |
-| Change Management | This control implements change management for code |
+| Incident Response | Activated when deployments cause outages; hotfix process defined there |
+| Vulnerability Management | Scan results can block deployments |
+| Secure Development & Data Protection | Code quality gates enforced before deployment |
+| System Component Inventory | Tracks what gets deployed; dependency versions |
+| Security Standards & Exception Governance | Deployment process exceptions follow governance process |

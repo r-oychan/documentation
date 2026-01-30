@@ -263,7 +263,7 @@ These statements are always true when this control is followed:
 
 ---
 
-## Appendix: Flow Summary
+## Appendix A: Flow Summary
 
 ```
 CARD REGISTRATION:
@@ -276,3 +276,11 @@ Core Module → Token+Amount → Kraken → Decrypt → Gateway → Issuer → R
 ```
 
 **The Core Module NEVER sees PAN. Kraken is the single point of cardholder data handling.**
+
+---
+
+## Appendix B: System Architecture
+
+![DASH Kraken System Architecture](images/dash-kraken-architecture-v4-direct-pan.jpg)
+
+*Figure: System architecture showing Kraken VPC as the isolated Cardholder Data Environment. Note the direct PAN flow from user apps to Kraken, bypassing DASH Main VPC.*
